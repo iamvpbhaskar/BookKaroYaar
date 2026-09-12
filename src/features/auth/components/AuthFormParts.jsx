@@ -1,0 +1,7 @@
+import { Alert, Box, Button, CircularProgress, Divider, Stack, Typography } from '@mui/material'
+import GoogleIcon from '@mui/icons-material/Google'
+export function FormError({ children }) { return children ? <Alert severity="error" variant="outlined" sx={{ borderRadius: 3 }}>{children}</Alert> : null }
+export function SubmitButton({ children, loading, ...props }) { return <Button type="submit" variant="contained" color="primary" disabled={loading} {...props}>{loading ? <CircularProgress size={21} color="inherit" /> : children}</Button> }
+export function GoogleButton({ loading, onClick }) { return <Button variant="outlined" onClick={onClick} disabled={loading} startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <GoogleIcon />} sx={{ borderColor: 'rgba(255,255,255,.25)', color: 'text.primary', '&:hover': { borderColor: '#FEC29F', backgroundColor: 'rgba(254,194,159,.06)' } }}>Continue with Google</Button> }
+export function AuthDivider() { return <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}><Divider sx={{ flex: 1, borderColor: 'rgba(255,255,255,.14)' }} /><Typography variant="caption" sx={{ color: 'text.secondary' }}>OR</Typography><Divider sx={{ flex: 1, borderColor: 'rgba(255,255,255,.14)' }} /></Box> }
+export function AuthForm({ children, onSubmit }) { return <Stack component="form" spacing={2} onSubmit={onSubmit} noValidate>{children}</Stack> }
