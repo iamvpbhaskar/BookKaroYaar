@@ -120,3 +120,11 @@ Complete live Firebase authentication acceptance checks: email signup/login/logo
 ### Exact next unfinished module
 
 Module 04 — Shareable Invite Links.
+
+## Firestore/Groups integration repair — 2026-09-13
+
+- Root cause: the dashboard and group list use `collectionGroup('members')` with `where('uid', '==', currentUserId)`. The original member-read rule required `member(groupId)` first, creating a circular authorization proof for the membership-discovery query. Firestore rejected that query with `permission-denied`; no composite index is needed for this single-field query.
+- Fix: retained the group-member authorization boundary and added one narrow member-read exception: a signed-in user may read only membership documents whose stored `uid` equals their authenticated UID. This enables discovery of a user’s own memberships; roster reads and all group-document reads still require group membership.
+- Deployment: `firebase.cmd deploy --only firestore --project bookkaroyaar --non-interactive` compiled and released `firestore.rules` successfully to the `cloud.firestore` release for Firebase project `bookkaroyaar` (project number `540353707941`).
+- Verification: lint and production build passed; Vite serves `/login`, `/app`, and `/app/groups` with HTTP 200 SPA shells. The deployed Firestore database is `(default)` in `asia-south1`.
+- Remaining validation: this environment cannot inspect the existing signed-in browser session or Firebase Console, so authenticated `/app`, `/app/groups`, create-group, profile read, refresh/persistence, and unauthorized-browser behavior must be manually exercised after a refresh. Module 03 remains pending that live acceptance pass; Module 04 has not started.
