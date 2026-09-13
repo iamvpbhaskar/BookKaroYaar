@@ -1,0 +1,3 @@
+import { useEffect, useState } from 'react'
+import { subscribeToUserGroups } from '../../../services/groups/groupService'
+export function useGroups(uid) { const [state, setState] = useState({ loading: true, error: null, groups: [] }); useEffect(() => { if (!uid) return undefined; const timer = window.setTimeout(() => setState({ loading: true, error: null, groups: [] }), 0); const unsubscribe = subscribeToUserGroups(uid, (groups) => setState({ loading: false, error: null, groups }), (error) => setState({ loading: false, error, groups: [] })); return () => { window.clearTimeout(timer); unsubscribe() } }, [uid]); return state }

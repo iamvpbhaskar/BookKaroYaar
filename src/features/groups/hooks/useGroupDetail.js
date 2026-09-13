@@ -1,0 +1,3 @@
+import { useEffect, useState } from 'react'
+import { subscribeToGroup, subscribeToMembers } from '../../../services/groups/groupService'
+export function useGroupDetail(groupId) { const [state, setState] = useState({ loading: true, error: null, group: null, members: [] }); useEffect(() => { if (!groupId) return undefined; const update = (patch) => setState((current) => ({ ...current, loading: false, error: null, ...patch })); const fail = (error) => setState((current) => ({ ...current, loading: false, error })); const stopGroup = subscribeToGroup(groupId, (group) => update({ group }), fail); const stopMembers = subscribeToMembers(groupId, (members) => update({ members }), fail); return () => { stopGroup(); stopMembers() } }, [groupId]); return state }

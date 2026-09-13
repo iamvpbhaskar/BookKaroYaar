@@ -8,6 +8,8 @@ import { LandingPage } from './features/landing/pages/LandingPage'
 import { AppShell } from './layout/AppShell'
 import { DashboardPage } from './features/dashboard/pages/DashboardPage'
 import { FutureModulePage } from './layout/FutureModulePage'
+import { GroupsPage } from './features/groups/pages/GroupsPage'
+import { GroupDetailPage } from './features/groups/pages/GroupDetailPage'
 
 function AppRoutes() {
   return <Routes>
@@ -18,7 +20,8 @@ function AppRoutes() {
     <Route path="/app" element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
       <Route index element={<DashboardPage />} />
       <Route path="plans" element={<FutureModulePage title="My plans" />} />
-      <Route path="groups" element={<FutureModulePage title="Groups" />} />
+      <Route path="groups" element={<GroupsPage />} />
+      <Route path="groups/:groupId" element={<GroupDetailPage />} />
       <Route path="bookings" element={<FutureModulePage title="Bookings" />} />
       <Route path="expenses" element={<FutureModulePage title="Expenses" />} />
       <Route path="notifications" element={<FutureModulePage title="Notifications" />} />

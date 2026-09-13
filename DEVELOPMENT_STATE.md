@@ -90,3 +90,33 @@ Complete live Firebase authentication acceptance checks: email signup/login/logo
 ## Last Updated
 
 2026-09-13
+
+## Module 03 — Groups & Members (implemented; live Firebase validation pending)
+
+- Replaced the `/app/groups` placeholder with protected `/app/groups` and `/app/groups/:groupId` routes.
+- Added `GroupPage` and group-detail experiences with real-time group, membership, and member-count listeners; loading, empty, error/retry, saving, confirmation, and responsive states are included.
+- Added group CRUD, creator-as-owner membership bootstrap, group editing/deletion, member roster, direct known-UID member addition, member removal, non-owner leave, role display, and owner-led role/ownership management.
+- Added the specified Firestore structure: `groups/{groupId}` and `groups/{groupId}/members/{uid}`, with lowercase persisted `owner`, `admin`, and `member` roles.
+- Added `firestore.rules` and `firebase.json`. Rules require auth, limit reads to group members, restrict modifications by role, preserve immutable group identity fields, block self-promotion, and protect owner departure.
+- Updated the dashboard service so the group pulse uses the authenticated user’s actual membership count. No future plan, booking, expense, settlement, poll, or notification data was introduced.
+
+### Module 03 files
+
+- Added: `firebase.json`, `firestore.rules`, `src/services/groups/groupService.js`, and `src/features/groups/` (constants, hooks, dialogs, pages, styles).
+- Modified: `src/App.jsx`, `src/features/dashboard/pages/DashboardPage.jsx`, `src/services/dashboard/dashboardService.js`, and this state file.
+
+### Module 03 verification
+
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed.
+- Vite served on `http://127.0.0.1:5178`; `/app/groups` and `/app/groups/group-test` returned HTTP 200 SPA shells.
+- `git diff --check` completed without whitespace errors.
+
+### Module 03 remaining limitation
+
+- Firestore rules have not been deployed from this environment, and there is no authenticated browser/Firebase Console session available for live create/edit/delete, authorization-denial, realtime, and record verification. Those checks must be completed after rules deployment.
+- Direct member addition intentionally accepts a known Firebase user ID; shareable invites remain Module 04.
+
+### Exact next unfinished module
+
+Module 04 — Shareable Invite Links.
