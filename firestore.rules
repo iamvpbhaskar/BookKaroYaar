@@ -7,6 +7,8 @@ service cloud.firestore {
     function role(groupId) { return get(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)).data.role; }
     function admin(groupId) { return member(groupId) && (role(groupId) == 'owner' || role(groupId) == 'admin'); }
     function owner(groupId) { return member(groupId) && role(groupId) == 'owner'; }
+    function planMember(groupId, planId) { return member(groupId) && exists(/databases/$(database)/documents/groups/$(groupId)/plans/$(planId)/members/$(request.auth.uid)); }
+    function planOrganizer(groupId, planId) { return planMember(groupId, planId) && get(/databases/$(database)/documents/groups/$(groupId)/plans/$(planId)/members/$(request.auth.uid)).data.role == 'organizer'; }
     function validInvite(inviteId, groupId) {
       return exists(/databases/$(database)/documents/inviteLinks/$(inviteId))
         && get(/databases/$(database)/documents/inviteLinks/$(inviteId)).data.groupId == groupId
@@ -32,6 +34,26 @@ service cloud.firestore {
         );
         allow update: if owner(groupId) || (admin(groupId) && resource.data.role == 'member' && request.resource.data.role in ['member', 'admin']);
         allow delete: if owner(groupId) || (admin(groupId) && resource.data.role == 'member') || (self(uid) && resource.data.role != 'owner');
+      }
+      match /plans/{planId} {
+        allow read: if member(groupId);
+        allow create: if member(groupId) && request.resource.data.createdBy == request.auth.uid && request.resource.data.type in ['trip', 'movie', 'dinner', 'event', 'other'] && request.resource.data.status == 'draft';
+        allow update: if (admin(groupId) || planOrganizer(groupId, planId))
+          && request.resource.data.createdBy == resource.data.createdBy
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.type in ['trip', 'movie', 'dinner', 'event', 'other']
+          && request.resource.data.status in ['draft', 'active', 'completed', 'cancelled'];
+        allow delete: if admin(groupId) || planOrganizer(groupId, planId);
+        match /members/{uid} {
+          allow read: if member(groupId);
+          allow create: if member(groupId) && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(uid)) && request.resource.data.uid == uid && ((request.resource.data.role == 'organizer' && uid == request.auth.uid && getAfter(/databases/$(database)/documents/groups/$(groupId)/plans/$(planId)).data.createdBy == request.auth.uid) || (request.resource.data.role == 'participant' && (admin(groupId) || planOrganizer(groupId, planId) || getAfter(/databases/$(database)/documents/groups/$(groupId)/plans/$(planId)).data.createdBy == request.auth.uid)));
+          allow delete: if admin(groupId) || (planOrganizer(groupId, planId) && resource.data.role == 'participant');
+        }
+        match /itinerary/{itemId} {
+          allow read: if member(groupId);
+          allow create: if admin(groupId) || planOrganizer(groupId, planId);
+          allow update, delete: if admin(groupId) || planOrganizer(groupId, planId);
+        }
       }
     }
 

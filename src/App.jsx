@@ -9,8 +9,10 @@ import { AppShell } from './layout/AppShell'
 import { DashboardPage } from './features/dashboard/pages/DashboardPage'
 import { FutureModulePage } from './layout/FutureModulePage'
 import { GroupsPage } from './features/groups/pages/GroupsPage'
-import { GroupDetailPage } from './features/groups/pages/GroupDetailPage'
+import { GroupWorkspacePage } from './features/groups/pages/GroupWorkspacePage'
 import { JoinPage } from './features/invites/pages/JoinPage'
+import { PlansPage } from './features/plans/pages/PlansPage'
+import { PlanDetailPage } from './features/plans/pages/PlanDetailPage'
 
 function AppRoutes() {
   return <Routes>
@@ -21,9 +23,10 @@ function AppRoutes() {
     <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
     <Route path="/app" element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
       <Route index element={<DashboardPage />} />
-      <Route path="plans" element={<FutureModulePage title="My plans" />} />
+      <Route path="plans" element={<PlansPage />} />
+      <Route path="plans/:planId" element={<PlanDetailPage />} />
       <Route path="groups" element={<GroupsPage />} />
-      <Route path="groups/:groupId" element={<GroupDetailPage />} />
+      <Route path="groups/:groupId" element={<GroupWorkspacePage />} />
       <Route path="bookings" element={<FutureModulePage title="Bookings" />} />
       <Route path="expenses" element={<FutureModulePage title="Expenses" />} />
       <Route path="notifications" element={<FutureModulePage title="Notifications" />} />

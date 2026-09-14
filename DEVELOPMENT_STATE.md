@@ -208,5 +208,43 @@ Verified end-to-end in real browser session authenticated as `Ved Prakash Bhaska
 
 Module 05 — Plans, Trips & Itinerary. Do not start automatically.
 
+## Module 05 — Plans, Trips & Itinerary (implemented; live Firebase browser acceptance pending)
+
+- Added the real `/app/plans` list and `/app/plans/:planId` contextual workspace.
+- Added intent-first creation for exactly trip, movie, dinner, event, and other, with required title/type validation, group selection, dates, location, description, cover, and real group-member selection.
+- Added realtime plan, plan-member, and itinerary listeners with loading, empty, error, future-module, and responsive states.
+- Added plan editing, draft/active/completed/cancelled lifecycle controls, history preservation, participant add/remove, itinerary add/edit/delete, and persisted move-up/move-down ordering.
+- Added group-detail plan surface through the integrated group workspace and dashboard upcoming-plan pulse using real plan data.
+
+### Module 05 schema
+
+- `groups/{groupId}/plans/{planId}`: `title`, `type`, `description`, `startAt`, `endAt`, `location`, `coverImageUrl`, `status`, `createdBy`, `createdAt`, `updatedAt`.
+- `groups/{groupId}/plans/{planId}/members/{uid}`: `uid`, `joinedAt`, `role`, `displayNameSnapshot`.
+- `groups/{groupId}/plans/{planId}/itinerary/{itemId}`: `title`, `type`, `startAt`, `endAt`, `location`, `notes`, `order`, `createdBy`.
+
+### Module 05 permissions and security
+
+- Firestore rules require authenticated parent-group membership for plan reads.
+- Plan creation requires the authenticated creator to be a parent-group member and use an allowed type/status.
+- Organizers and parent-group owners/admins can edit plans, lifecycle state, members, and itinerary; organizer membership is controlled by the plan creator.
+- Plan participants must already exist as parent-group members; organizer assignment cannot be injected by a client.
+- Collection-group membership discovery filters documents by path depth so nested plan members cannot appear as parent groups in dashboard/group queries.
+- Rules compiled and deployed successfully with `firebase.cmd deploy --only firestore:rules --non-interactive`.
+
+### Module 05 routes and verification
+
+- Routes: `/app/plans`, `/app/plans/:planId`, and group detail surfaces real plans without duplicating plan data.
+- `npm.cmd run lint` passes.
+- `npm.cmd run build` passes; Vite reports only the existing large-chunk warning.
+- `git diff --check` passes.
+- Local Vite server starts on `http://127.0.0.1:5181`.
+- Real-browser authenticated verification remains pending because the available Playwright browser executable is not installed in this environment. Firebase live create/member/itinerary/lifecycle and cross-account denial checks therefore remain unverified here.
+
+### Remaining limitations and exact next module
+
+- Browser acceptance with the real `Goa Roadtrip` group, second account, responsive screenshots, and console-error review must be completed in an environment with browser tooling and authenticated Firebase access.
+- Bookings, Expenses, Polls, Activity, Notifications, and Settlement remain future modules; their plan tabs are explicit incomplete states.
+- Exact next module: Module 06 — Booking Management.
+
 ### Historical next-module checkpoint
 Module 04 — Shareable Invite Links.

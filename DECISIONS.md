@@ -258,6 +258,16 @@ Groups/plans can use shareable invite links.
 
 Invite links should be treated as controlled access mechanisms.
 
+# 014 — Nested Membership Discovery
+
+## Decision
+
+Keep the specified `members` subcollection name for both groups and plans, but restrict collection-group membership discovery to documents at the parent-group path depth.
+
+## Reason
+
+The product schema intentionally nests plan membership under plans. Without path-depth filtering, dashboard and group discovery queries would mistake plan participants for top-level group memberships.
+
 Potential properties include:
 
 - token/code

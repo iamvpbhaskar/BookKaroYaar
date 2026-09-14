@@ -11,7 +11,7 @@ export function subscribeToUserGroups(uid, onData, onError) {
     memberCountUnsubscribes.forEach((unsubscribe) => unsubscribe())
     groupUnsubscribes = []
     memberCountUnsubscribes = []
-    const memberships = snapshot.docs.map((member) => ({ id: member.id, groupId: member.ref.parent.parent.id, ...member.data() }))
+    const memberships = snapshot.docs.filter((member) => member.ref.path.split('/').length === 4).map((member) => ({ id: member.id, groupId: member.ref.parent.parent.id, ...member.data() }))
     const groups = new Map()
     const memberCounts = new Map()
     const emit = () => onData(memberships.map((membership) => groups.get(membership.groupId)).filter(Boolean).map((group) => ({ ...group, memberCount: memberCounts.get(group.id) || 0, membership: memberships.find((item) => item.groupId === group.id) })))
