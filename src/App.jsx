@@ -10,10 +10,12 @@ import { DashboardPage } from './features/dashboard/pages/DashboardPage'
 import { FutureModulePage } from './layout/FutureModulePage'
 import { GroupsPage } from './features/groups/pages/GroupsPage'
 import { GroupDetailPage } from './features/groups/pages/GroupDetailPage'
+import { JoinPage } from './features/invites/pages/JoinPage'
 
 function AppRoutes() {
   return <Routes>
     <Route path="/" element={<LandingPage />} />
+    <Route path="/join/:inviteCode" element={<JoinPage />} />
     <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
     <Route path="/signup" element={<GuestRoute><SignupPage /></GuestRoute>} />
     <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />

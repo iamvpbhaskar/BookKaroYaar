@@ -7,6 +7,12 @@ service cloud.firestore {
     function role(groupId) { return get(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid)).data.role; }
     function admin(groupId) { return member(groupId) && (role(groupId) == 'owner' || role(groupId) == 'admin'); }
     function owner(groupId) { return member(groupId) && role(groupId) == 'owner'; }
+    function validInvite(inviteId, groupId) {
+      return exists(/databases/$(database)/documents/inviteLinks/$(inviteId))
+        && get(/databases/$(database)/documents/inviteLinks/$(inviteId)).data.groupId == groupId
+        && get(/databases/$(database)/documents/inviteLinks/$(inviteId)).data.status == 'active'
+        && get(/databases/$(database)/documents/inviteLinks/$(inviteId)).data.expiresAt > request.time;
+    }
 
     match /users/{uid} { allow read, create, update, delete: if self(uid); }
     match /groups/{groupId} {
@@ -18,16 +24,46 @@ service cloud.firestore {
       allow delete: if owner(groupId);
       match /members/{uid} {
         allow read: if member(groupId);
-        allow create: if signedIn() && request.resource.data.uid == uid && ((owner(groupId) && request.resource.data.role in ['admin', 'member']) || (admin(groupId) && request.resource.data.role == 'member') || (request.auth.uid == uid && request.resource.data.role == 'owner' && getAfter(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid));
+        allow create: if signedIn() && request.resource.data.uid == uid && (
+          (owner(groupId) && request.resource.data.role in ['admin', 'member'])
+          || (admin(groupId) && request.resource.data.role == 'member')
+          || (request.auth.uid == uid && request.resource.data.role == 'owner' && getAfter(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid)
+          || (request.auth.uid == uid && request.resource.data.role == 'member' && request.resource.data.inviteId != null && validInvite(request.resource.data.inviteId, groupId))
+        );
         allow update: if owner(groupId) || (admin(groupId) && resource.data.role == 'member' && request.resource.data.role in ['member', 'admin']);
         allow delete: if owner(groupId) || (admin(groupId) && resource.data.role == 'member') || (self(uid) && resource.data.role != 'owner');
       }
     }
 
+    match /inviteLinks/{inviteId} {
+      // Public unauthenticated read: only active invite documents may be read by anyone.
+      // This is intentional: inviteLinks documents contain only safe public snapshot fields.
+      // Separate rule for authenticated admins to read non-active invites (management UI).
+      allow read: if resource.data.status == 'active';
+      allow read: if signedIn() && admin(resource.data.groupId);
+      allow create: if signedIn()
+        && admin(request.resource.data.groupId)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.role == 'member';
+      allow update: if (signedIn() && admin(resource.data.groupId))
+        || (signedIn()
+            && resource.data.status == 'active'
+            && resource.data.expiresAt > request.time
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usesCount'])
+            && request.resource.data.usesCount == resource.data.usesCount + 1);
+      allow delete: if signedIn() && admin(resource.data.groupId);
+    }
+
     // A signed-in user may discover only their own membership document across
     // groups via collectionGroup('members'). All other roster reads still require group membership.
     match /{path=**}/members/{uid} {
-      allow read: if signedIn() && resource.data.uid == request.auth.uid;
+      // `get` must be authorized by the requested document ID because a
+      // prospective member has no membership document yet. This is used to
+      // establish the already-member state before accepting an invite.
+      allow get: if signedIn() && uid == request.auth.uid;
+      // Collection-group discovery remains constrained by the persisted UID.
+      allow list: if signedIn() && resource.data.uid == request.auth.uid;
     }
   }
 }

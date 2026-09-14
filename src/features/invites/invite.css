@@ -1,0 +1,255 @@
+/* BookKaroYaar — Shareable Invite Landing Styles */
+
+.join-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #12181f;
+  background: radial-gradient(circle at 50% 10%, rgba(254, 194, 159, 0.12), transparent 45%),
+              radial-gradient(circle at 85% 85%, rgba(255, 218, 228, 0.08), transparent 40%),
+              #12181f;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 20px;
+  box-sizing: border-box;
+  color: #fff;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.join-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.join-brand-title {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-decoration: none;
+}
+
+.join-brand-title span {
+  color: #fec29f;
+}
+
+.join-hero-tagline {
+  font-size: clamp(26px, 5vw, 38px);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-align: center;
+  color: #fff;
+  margin: 0;
+}
+
+.join-hero-tagline em {
+  display: block;
+  color: #fec29f;
+  font-style: normal;
+}
+
+.join-card-container {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.join-card {
+  background: #1d2630;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  animation: joinCardRise 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes joinCardRise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.join-card-cover {
+  width: 100%;
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  background-color: #263342;
+}
+
+.join-card-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(29, 38, 48, 0.2) 0%, #1d2630 100%);
+}
+
+.join-card-body {
+  padding: 30px 30px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+
+.join-eyebrow {
+  color: #fec29f;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.join-group-title {
+  font-size: clamp(34px, 8vw, 48px) !important;
+  font-weight: 900 !important;
+  line-height: 0.98 !important;
+  color: #fff;
+  letter-spacing: -0.045em !important;
+  margin: 0 !important;
+  word-break: break-word;
+}
+
+.join-inviter-line {
+  font-size: 14px;
+  color: #b9c0c7;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.join-inviter-line strong {
+  color: #fec29f;
+  font-weight: 700;
+}
+
+.join-social-proof {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(254, 194, 159, 0.1);
+  border: 1px solid rgba(254, 194, 159, 0.2);
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin: 2px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffdae4;
+}
+
+.join-group-desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #8e96a0;
+  margin: 4px 0 8px;
+  max-width: 340px;
+}
+
+.join-card-body > .MuiBox-root {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.join-cta-btn {
+  width: 100%;
+  background-color: #fec29f !important;
+  color: #1d2630 !important;
+  font-weight: 800 !important;
+  font-size: 16px !important;
+  padding: 12px 24px !important;
+  border-radius: 999px !important;
+  text-transform: none !important;
+  letter-spacing: -0.01em !important;
+  transition: transform 0.1s ease, background-color 0.15s ease !important;
+  box-shadow: 0 4px 14px rgba(254, 194, 159, 0.3) !important;
+}
+
+.join-cta-btn:hover {
+  background-color: #f5b48e !important;
+}
+
+.join-cta-btn:active {
+  transform: scale(0.98);
+}
+
+.join-auth-prompt {
+  margin: 14px 0 0;
+  line-height: 1.5;
+  font-size: 13px;
+  color: #8e96a0;
+}
+
+.join-auth-prompt a {
+  color: #fec29f;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.join-auth-prompt a:hover {
+  text-decoration: underline;
+}
+
+.join-already-member-alert {
+  width: 100%;
+  margin-bottom: 16px;
+  border-radius: 12px;
+}
+
+.join-state-card {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.join-state-icon {
+  font-size: 48px;
+  color: #fec29f;
+  margin-bottom: 16px;
+}
+
+.join-footer {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.join-footer-motto {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #5d6773;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .join-page {
+    padding: 24px 16px;
+  }
+  
+  .join-card-body {
+    padding: 26px 20px 28px;
+    gap: 13px;
+  }
+
+  .join-group-title {
+    font-size: clamp(32px, 10vw, 40px) !important;
+  }
+}

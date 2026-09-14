@@ -185,5 +185,28 @@ Verified end-to-end in real browser session authenticated as `Ved Prakash Bhaska
   - `git diff --check` passed with 0 formatting issues.
   - Browser subagent verified on live group "Goa Roadtrip": UID inputs are completely gone, member row displays clean role labels, CTA button opens the Module 04 invite dialog, and dialog closes cleanly.
 
-### Exact Next Unfinished Module
+## Module 04 — Shareable Invite Links (completed and live-verified)
+
+- Added secure shareable group invite links at `/join/:inviteCode`, with safe public preview, active-link reuse, copy/share controls, revocation, expiry, invalid-link, and already-member states.
+- Invite records in `inviteLinks/{inviteCode}` contain a group reference and safe public snapshot fields. The join flow atomically creates `groups/{groupId}/members/{uid}` once with `role: 'member'`, stores the invite ID, increments uses, and redirects to group detail.
+- Firestore rules preserve group and roster protection while allowing active public invite previews and a recipient’s own membership-path `get` before that membership exists. Collection-group discovery remains stored-UID constrained.
+- Live browser verification was completed with real Account A (owner) and Account B (recipient): invite creation, public preview, cross-account authentication and join, persisted membership, roster update, refresh persistence, and already-member behavior all succeeded.
+
+### Recent UX refinements
+
+- Refined invite-page spacing, responsive title scale, and CTA/auth separation.
+- Desktop sidebar is collapsed by default with an accessible expand/collapse control; tablet/mobile drawer behavior is unchanged.
+- Login and signup now put Google authentication first, followed by an email divider. Login includes an accessible password show/hide control.
+
+### Verification
+
+- `npm.cmd run lint` passes.
+- `npm.cmd run build` passes.
+- `git diff --check` passes.
+
+### Exact next unfinished module
+
+Module 05 — Plans, Trips & Itinerary. Do not start automatically.
+
+### Historical next-module checkpoint
 Module 04 — Shareable Invite Links.
