@@ -121,10 +121,51 @@ Complete live Firebase authentication acceptance checks: email signup/login/logo
 
 Module 04 — Shareable Invite Links.
 
-## Firestore/Groups integration repair — 2026-09-13
+## Firestore/Groups Integration Resolution — 2026-09-14
 
-- Root cause: the dashboard and group list use `collectionGroup('members')` with `where('uid', '==', currentUserId)`. The original member-read rule required `member(groupId)` first, creating a circular authorization proof for the membership-discovery query. Firestore rejected that query with `permission-denied`; no composite index is needed for this single-field query.
-- Fix: retained the group-member authorization boundary and added one narrow member-read exception: a signed-in user may read only membership documents whose stored `uid` equals their authenticated UID. This enables discovery of a user’s own memberships; roster reads and all group-document reads still require group membership.
-- Deployment: `firebase.cmd deploy --only firestore --project bookkaroyaar --non-interactive` compiled and released `firestore.rules` successfully to the `cloud.firestore` release for Firebase project `bookkaroyaar` (project number `540353707941`).
-- Verification: lint and production build passed; Vite serves `/login`, `/app`, and `/app/groups` with HTTP 200 SPA shells. The deployed Firestore database is `(default)` in `asia-south1`.
-- Remaining validation: this environment cannot inspect the existing signed-in browser session or Firebase Console, so authenticated `/app`, `/app/groups`, create-group, profile read, refresh/persistence, and unauthorized-browser behavior must be manually exercised after a refresh. Module 03 remains pending that live acceptance pass; Module 04 has not started.
+### Exact Root Cause
+The runtime error on `/app` ("We couldn’t open your command center.") and `/app/groups` ("We couldn’t load your groups.") was caused by two compounding factors:
+1. **Missing Collection Group Index (Primary Engine Failure)**: In Cloud Firestore, single-field indexes are automatically maintained only for collection scope, not for collection group scope. Running `collectionGroup(db, 'members')` filtered by `where('uid', '==', uid)` requires an explicit `COLLECTION_GROUP` single-field index exemption on field `uid`. The project had zero index overrides, producing runtime error `400 FAILED_PRECONDITION: The query requires a COLLECTION_GROUP_ASC index for collection members and field uid.`
+2. **Security Rules Scope for Collection Groups**: In Firestore Security Rules (v2), collection group queries do not match path-nested rules (`match /groups/{groupId}/members/{uid}`). They strictly require a top-level recursive wildcard match (`match /{path=**}/members/{uid}`). Without this, Firestore's static query validator denies collection group queries by default with `permission-denied`.
+
+### Exact Documents Inspected
+- `users/JNyiRKmN0ZaPxMCbgTV2U8CdX6J3`: profile document exists with fields `displayName`, `email`, `createdAt`, `updatedAt`, `lastLoginAt`, `onboardingComplete`, `photoURL`.
+- `groups`: initially 0 documents.
+- `groups/*/members`: initially 0 documents.
+- Membership schema verified against `src/services/groups/groupService.js` and `03-groups-members.pdf`: each membership document has document ID = `user.uid` and contains `uid`, `role`, `joinedAt`, `displayNameSnapshot`, and `photoURLSnapshot`.
+
+### Exact Index Requirement
+Defined `firestore.indexes.json` with a single-field override for collection group `members` on field `uid` (`queryScope: "COLLECTION_GROUP"`, `order: "ASCENDING"`), and linked it in `firebase.json`.
+
+### Exact Rule Requirement
+Updated `firestore.rules` with a narrow top-level recursive collection group read rule:
+```javascript
+match /{path=**}/members/{uid} {
+  allow read: if signedIn() && resource.data.uid == request.auth.uid;
+}
+```
+This enables users to discover only their own membership records across groups. All other roster reads continue to require group membership (`member(groupId)`), and group document reads/writes retain strict owner/admin/member authorization.
+
+### Exact Deployment Result
+1. **Indexes**: `firebase.cmd deploy --only firestore:indexes --non-interactive` deployed `firestore.indexes.json` successfully to project `bookkaroyaar`. Verified index state via Google Cloud Firestore Admin REST API transitioned to `READY`.
+2. **Rules**: `firebase.cmd deploy --only firestore:rules --non-interactive` compiled and released `firestore.rules` to `cloud.firestore`.
+3. **REST Query Validation**: Direct query to `runQuery` with `where uid == JNyiRKmN0ZaPxMCbgTV2U8CdX6J3` returned HTTP 200 OK.
+
+### Actual Browser Verification
+Verified end-to-end in real browser session authenticated as `Ved Prakash Bhaskar (iamved99@gmail.com)`:
+1. Navigated to `/app`: command center loaded successfully with zero Firestore errors; rendered personalized welcome and empty state.
+2. Navigated to `/app/groups`: loaded clean "No groups yet. Let’s change that." empty state with zero Firestore error banners.
+3. Created test group "Goa Roadtrip" (description: "Trip to Goa with friends", cover image URL provided) via dialog; explicit `onClick` on submit button ensures cross-browser form submission.
+4. Firestore write succeeded (`groups/dX0bffoqEkphaLvj4AMt` and `groups/dX0bffoqEkphaLvj4AMt/members/JNyiRKmN0ZaPxMCbgTV2U8CdX6J3`).
+5. App dynamically navigated to `/app/groups/dX0bffoqEkphaLvj4AMt`: group detail rendered with group title, description, and creator member with role `Owner`.
+6. Browser refresh on `/app/groups/dX0bffoqEkphaLvj4AMt`: reloaded group detail from Firestore with complete persistence.
+7. Navigated back to `/app/groups`: rendered group card "Goa Roadtrip" showing `1 member · Owner`.
+8. Navigated back to `/app`: command center Group Pulse section correctly updated from 0 to `1 group ready for a plan.`
+9. Recorded browser interaction artifacts saved to `.system_generated`.
+
+### Remaining Limitations
+- A second authenticated account is not yet configured in this environment to test cross-user member addition and non-member group access denial in the live browser (already protected and enforced by Firestore Security Rules).
+- Shareable invite links remain the scope of Module 04.
+
+### Exact Next Unfinished Module
+Module 04 — Shareable Invite Links.

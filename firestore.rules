@@ -17,14 +17,17 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if owner(groupId);
       match /members/{uid} {
-        // A signed-in user may discover only their own membership document across
-        // groups. This permits the collection-group membership query that powers
-        // the group list; all other roster reads still require membership.
-        allow read: if member(groupId) || (signedIn() && resource.data.uid == request.auth.uid);
+        allow read: if member(groupId);
         allow create: if signedIn() && request.resource.data.uid == uid && ((owner(groupId) && request.resource.data.role in ['admin', 'member']) || (admin(groupId) && request.resource.data.role == 'member') || (request.auth.uid == uid && request.resource.data.role == 'owner' && getAfter(/databases/$(database)/documents/groups/$(groupId)).data.createdBy == request.auth.uid));
         allow update: if owner(groupId) || (admin(groupId) && resource.data.role == 'member' && request.resource.data.role in ['member', 'admin']);
         allow delete: if owner(groupId) || (admin(groupId) && resource.data.role == 'member') || (self(uid) && resource.data.role != 'owner');
       }
+    }
+
+    // A signed-in user may discover only their own membership document across
+    // groups via collectionGroup('members'). All other roster reads still require group membership.
+    match /{path=**}/members/{uid} {
+      allow read: if signedIn() && resource.data.uid == request.auth.uid;
     }
   }
 }
