@@ -7,7 +7,7 @@ export function usePlanDetail(groupId, planId) {
     if (!groupId || !planId) return undefined
     const update = (patch) => setState((current) => ({ ...current, loading: false, error: null, ...patch }))
     const fail = (error) => setState((current) => ({ ...current, loading: false, error }))
-    const stops = [subscribeToPlan(groupId, planId, (plan) => update({ plan }), fail), subscribeToPlanMembers(groupId, planId, (members) => update({ members }), fail), subscribeToItinerary(groupId, planId, (itinerary) => update({ itinerary }), fail)]
+    const stops = [subscribeToPlan(groupId, planId, (plan) => update({ plan }), fail), subscribeToPlanMembers(groupId, planId, (members) => update({ members }), fail), subscribeToItinerary(groupId, planId, (itinerary) => { console.info('[Itinerary Debug] refresh completed', { groupId, planId, itemCount: itinerary.length }); update({ itinerary }) }, fail)]
     return () => stops.forEach((stop) => stop())
   }, [groupId, planId])
   return state

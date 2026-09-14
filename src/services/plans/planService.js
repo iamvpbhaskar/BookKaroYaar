@@ -2,6 +2,9 @@ import { collection, collectionGroup, deleteDoc, doc, getDocs, onSnapshot, order
 import { db } from '../firebase/config'
 import { PLAN_ROLES, PLAN_STATUSES } from '../../features/plans/planConstants'
 
+const devInfo = (...args) => { if (import.meta.env.DEV) console.info(...args) }
+const devError = (...args) => { if (import.meta.env.DEV) console.error(...args) }
+
 const plansCollection = (groupId) => collection(db, 'groups', groupId, 'plans')
 const planDocument = (groupId, planId) => doc(db, 'groups', groupId, 'plans', planId)
 const membersCollection = (groupId, planId) => collection(db, 'groups', groupId, 'plans', planId, 'members')
@@ -34,19 +37,35 @@ export function subscribeToPlanMembers(groupId, planId, onData, onError) { retur
 export function subscribeToItinerary(groupId, planId, onData, onError) { return onSnapshot(query(collection(db, 'groups', groupId, 'plans', planId, 'itinerary'), orderBy('order', 'asc')), (snapshot) => onData(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))), onError) }
 
 export async function createPlan(groupId, values, user, selectedMembers = []) {
+  devInfo('[plans] Firestore write started', { groupId, currentUserUid: user?.uid, selectedParticipantUids: selectedMembers.map((member) => member.uid) })
   const planRef = doc(plansCollection(groupId))
   const batch = writeBatch(db)
   batch.set(planRef, { title: values.title.trim(), type: values.type, description: values.description.trim(), startAt: values.startAt, endAt: values.endAt, location: values.location.trim(), coverImageUrl: values.coverImageUrl.trim(), status: PLAN_STATUSES.DRAFT, createdBy: user.uid, createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
   batch.set(doc(membersCollection(groupId, planRef.id), user.uid), { uid: user.uid, joinedAt: serverTimestamp(), role: PLAN_ROLES.ORGANIZER, displayNameSnapshot: user.displayName || user.email || 'Organizer' })
-  selectedMembers.filter((member) => member.uid !== user.uid).forEach((member) => batch.set(doc(membersCollection(groupId, planRef.id), member.uid), { uid: member.uid, joinedAt: serverTimestamp(), role: PLAN_ROLES.PARTICIPANT, displayNameSnapshot: member.displayNameSnapshot || 'Participant' }))
-  await batch.commit()
+  const uniqueParticipants = [...new Map(selectedMembers.filter((member) => member.uid !== user.uid).map((member) => [member.uid, member])).values()]
+  uniqueParticipants.forEach((member) => batch.set(doc(membersCollection(groupId, planRef.id), member.uid), { uid: member.uid, joinedAt: serverTimestamp(), role: PLAN_ROLES.PARTICIPANT, displayNameSnapshot: member.displayNameSnapshot || 'Participant' }))
+  try { await batch.commit() } catch (error) { devError('[plans] Firestore write failed', { code: error?.code, message: error?.message, groupId, planId: planRef.id }); throw error }
+  devInfo('[plans] Firestore write succeeded', { planId: planRef.id, organizerUid: user.uid, participantUids: uniqueParticipants.map((member) => member.uid) })
   return planRef.id
 }
 export async function updatePlan(groupId, planId, values) { return updateDoc(planDocument(groupId, planId), { title: values.title.trim(), type: values.type, description: values.description.trim(), startAt: values.startAt, endAt: values.endAt, location: values.location.trim(), coverImageUrl: values.coverImageUrl.trim(), updatedAt: serverTimestamp() }) }
 export async function updatePlanStatus(groupId, planId, status) { return updateDoc(planDocument(groupId, planId), { status, updatedAt: serverTimestamp() }) }
 export async function addPlanMember(groupId, planId, member) { return setDoc(doc(membersCollection(groupId, planId), member.uid), { uid: member.uid, joinedAt: serverTimestamp(), role: PLAN_ROLES.PARTICIPANT, displayNameSnapshot: member.displayNameSnapshot || 'Participant' }) }
 export async function removePlanMember(groupId, planId, uid) { return deleteDoc(doc(membersCollection(groupId, planId), uid)) }
-export async function saveItineraryItem(groupId, planId, item, user) { const itemRef = item.id ? doc(db, 'groups', groupId, 'plans', planId, 'itinerary', item.id) : doc(collection(db, 'groups', groupId, 'plans', planId, 'itinerary')); const payload = { title: item.title.trim(), type: item.type.trim(), startAt: item.startAt, endAt: item.endAt, location: item.location.trim(), notes: item.notes.trim(), order: Number(item.order), createdBy: item.createdBy || user.uid }; return item.id ? updateDoc(itemRef, payload) : setDoc(itemRef, payload).then(() => itemRef.id) }
+export async function saveItineraryItem(groupId, planId, item, user) {
+  const itemRef = item.id ? doc(db, 'groups', groupId, 'plans', planId, 'itinerary', item.id) : doc(collection(db, 'groups', groupId, 'plans', planId, 'itinerary'))
+  const payload = { title: item.title.trim(), type: item.type.trim(), startAt: item.startAt, endAt: item.endAt, location: item.location.trim(), notes: item.notes.trim(), order: Number(item.order), createdBy: item.createdBy || user.uid }
+  console.info('[Itinerary Debug] Firestore write started', { groupId, planId, itemId: itemRef.id, currentUserUid: user?.uid, order: payload.order })
+  try {
+    if (item.id) await updateDoc(itemRef, payload)
+    else await setDoc(itemRef, payload)
+  } catch (error) {
+    console.error('[Itinerary Debug] Firestore error', { code: error?.code, message: error?.message, groupId, planId, itemId: itemRef.id })
+    throw error
+  }
+  console.info('[Itinerary Debug] Firestore success', { itemId: itemRef.id })
+  return itemRef.id
+}
 export async function deleteItineraryItem(groupId, planId, itemId) { return deleteDoc(doc(db, 'groups', groupId, 'plans', planId, 'itinerary', itemId)) }
 export async function reorderItinerary(groupId, planId, items) { const batch = writeBatch(db); items.forEach((item, index) => batch.update(doc(db, 'groups', groupId, 'plans', planId, 'itinerary', item.id), { order: index })); return batch.commit() }
 export async function getGroupPlans(groupId) { const snapshot = await getDocs(query(plansCollection(groupId), orderBy('startAt', 'asc'))); return snapshot.docs.map((item) => snapshotPlan(item, groupId)) }

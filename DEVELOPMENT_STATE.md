@@ -246,5 +246,64 @@ Module 05 — Plans, Trips & Itinerary. Do not start automatically.
 - Bookings, Expenses, Polls, Activity, Notifications, and Settlement remain future modules; their plan tabs are explicit incomplete states.
 - Exact next module: Module 06 — Booking Management.
 
+## Create Plan Trace Fix — 2026-09-15
+
+- Root cause found in the client handoff: `PlanFormDialog` loaded the selected parent-group roster through `useGroupDetail(groupId)`, but `PlansPage` passed `members={[]}` and the submit handler built `selectedMembers` from that empty prop. Selected real participants were therefore silently dropped before `createPlan()`.
+- Fixed submission to derive selected participants from the loaded selected-group roster. The organizer is still written separately exactly once, and participant writes are deduplicated by UID without changing display-name behavior.
+- Added explicit validation for title, type, selected group, authenticated-user membership in that group, invalid dates, and `endAt < startAt`.
+- Added development-only trace points for submit start, validated payload, `createPlan` call, Firestore batch start/failure/success, and navigation destination. Firebase errors now expose their exact error code in the dialog during development.
+- Firestore rules were not weakened. Participant creation remains limited to UIDs that already exist in the selected parent group; organizer assignment remains controlled by the authenticated creator.
+- `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` pass.
+- A live Goa Roadtrip write could not be executed in this takeover environment because the integrated browser had no authenticated Firebase session. No claim is made that the live batch error code was observed here; the next acceptance run should use the development console trace with the existing authenticated account.
+
+## Create Plan Form Event Fix — 2026-09-15
+
+- Root cause was isolated to the client event boundary: the create action relied on implicit ancestry from `DialogActions` inside `DialogContent component="form"`, and there was no click diagnostic on the button itself. That made the pre-Firestore failure indistinguishable in the browser console.
+- Rebuilt only `PlanDialogs.jsx` around an explicit form boundary: `<Box component="form" id="create-plan-form" onSubmit={submit}>`, with the Create plan button explicitly using `type="submit" form="create-plan-form"`.
+- Intent buttons and Cancel are explicitly `type="button"`, preventing accidental submits from unrelated controls.
+- Added development-only diagnostics in order: Create plan click, form submit, validation started, validation passed, calling `createPlan`, and existing Firestore/navigation diagnostics.
+- No Firestore rules, schema, member display logic, or database data were changed.
+- `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` pass.
+- Live authenticated browser confirmation remains pending because the shared browser page with the Firebase session was not available to the agent; use the new `[Plan Debug]` logs to confirm click and submit before evaluating any Firebase behavior.
+
+## Plan Edit Auth and React Warning Fix — 2026-09-15
+
+- Root cause: `PlanDetailPage` obtained the authenticated `user` from `AuthContext`, but the edit `PlanFormDialog` invocation did not pass `currentUserUid`. Create passed the UID; edit received `undefined` and failed membership validation before `updatePlan()`.
+- Fix: `PlanFormDialog` now reads the existing `AuthContext` and resolves `currentUserUid || authUser.uid`, with separate messages for an unavailable session versus an authenticated non-member. No duplicate auth state was introduced.
+- React fixes: plan dialogs now use MUI `slotProps.inputLabel` and `slotProps.paper` instead of leaking `InputLabelProps`/`PaperProps`; plan-detail avatars render as `span` elements so Avatar nodes are not nested inside Typography paragraph elements.
+- `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` pass. No security rules or schemas changed.
+- Remaining limitation: the existing authenticated owner browser flow was not executable from this agent session, so the final live edit/update/refresh persistence check remains pending. The edit boundary logs the current user and UID in development for that run.
+
+## Itinerary Submission Fix — 2026-09-15
+
+- Root cause 1: `ItineraryDialog` relied on the implicit `DialogContent component="form"`/`DialogActions` structure and had no Save-button diagnostic. The explicit itinerary form boundary now uses `id="itinerary-item-form"`, `onSubmit`, and a Save button with `type="submit" form="itinerary-item-form"`.
+- Root cause 2 found during live edit verification: the itinerary dialog remained mounted when switching between Add and Edit, so its state retained the previous new-item values and dropped the existing `item.id`. Editing therefore created a second item instead of updating the existing document. The dialog now resets from `initialValues` when opened or when the target item changes.
+- Added development-only trace points for Save click, form submit, validation, parent callback, Firestore start/error/success, realtime refresh, and exact Firebase error code/message.
+- Live authenticated verification: Save item created/loaded an itinerary item and the realtime count changed; editing `flight` to `flight updated` kept the count at one and updated the existing item; reopening the plan URL refreshed successfully with `flight updated` persisted.
+- No date validation, parent plan dates, Firestore rules, schema, groups, or invites were changed.
+- `npm.cmd run lint`, `npm.cmd run build`, and `git diff --check` pass. Remaining limitation: the live console log sequence and generated Firestore item ID were observed in the authenticated browser but are not captured in repository artifacts; the development diagnostics remain available for repeat testing.
+
+## Module 05 Final Live Acceptance — 2026-09-15
+
+Module 05 is complete and live-verified with the existing authenticated owner account and the real Goa Roadtrip group.
+
+- Create Plan: verified.
+- Edit Plan: verified; updated plan details persisted after refresh.
+- Participants: verified; organizer and selected group participants remained intact.
+- Itinerary create/edit/delete: verified.
+- Itinerary reorder: verified; Firestore order persisted after refresh.
+- Plan lifecycle: verified across the implemented lifecycle controls.
+- Dashboard integration: verified with real plan context.
+- Group integration: verified with real plans surfaced in group context.
+- Responsive plan workspace and dialog behavior: verified in the live browser session.
+
+Final checks:
+
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed; only the existing Vite large-chunk warning remains.
+- `git diff --check` passed.
+
+Bookings, Expenses, Polls, Activity, Notifications, and Settlement remain future modules. Exact next module: Module 06 — Booking Management.
+
 ### Historical next-module checkpoint
 Module 04 — Shareable Invite Links.
