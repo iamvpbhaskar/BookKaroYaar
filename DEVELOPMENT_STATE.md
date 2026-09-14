@@ -2,6 +2,55 @@
 
 > Repository continuity checkpoint. Read this file before making changes.
 
+## Typography V3 — 2026-09-15
+
+V3 re-art-directed the type hierarchy around deliberate volume rather than applying the expressive display voice to every heading. The audit used the Runable website as a discipline reference only; BookKaroYaar’s design PDF and product intent remain the source of truth.
+
+### V3 semantic hierarchy
+
+- Display: `var(--type-display)`, display family, 750; reserved for the landing hero, poster title, and exceptional editorial moments.
+- Hero/page title: `var(--type-page)`, UI family, 700; used by dashboard, groups, plans, auth, and future-module page titles.
+- Plan title: `var(--type-plan-title)`, display family, 750; used only by the contextual plan hero and bounded to an intentional reading width.
+- Section heading: `var(--type-section)`, UI family, 650; used by overview, itinerary, members, and dashboard sections.
+- Card heading: `var(--type-card)` / `var(--type-card-sm)`, UI family, 650/600; used by plan/group cards and compact contextual surfaces.
+- Body large/body: `1.125rem` / `1rem`, UI family, 400/500; used for explanations and product copy.
+- Metadata: `.875rem` / `.75rem`, UI family, 400/500; used for dates, locations, roles, and plan facts.
+- Label: `.6875rem`, UI family, 600, `.1em` tracking; used for eyebrows, tabs context, and compact uppercase labels.
+- Button/control: `.875rem`, UI family, 600, zero tracking; used for navigation, actions, tabs, and form controls.
+
+### V3 responsive rules and normalized surfaces
+
+- Landing retains the strongest display treatment and editorial line breaks.
+- Plan detail has one dominant bounded title; Overview, Itinerary, Members, tabs, metadata, and actions step down visibly.
+- Dashboard and groups keep their existing composition but use UI-sans page/section/card hierarchy instead of repeated display headings.
+- Auth and invite surfaces use one clear title with compact labels and quieter explanatory copy.
+- At mobile widths, page titles use controlled `clamp()` values and tighter heading leading; section/card levels do not scale into hero sizes.
+- No colors, layout structure, routing, Firebase logic, schema, or product behavior changed. Typography V3 is centralized in `theme.js`, `index.css`, and `typography.css`.
+
+## Module 05 Responsive Visual Acceptance — 2026-09-15
+
+Visual QA covered the plans list, plan detail, plan/edit dialogs, itinerary tab and add dialog, group detail with the real Goa Roadtrip plan, and dashboard with the real upcoming plan.
+
+| Requested viewport | Result | Main observation |
+| --- | --- | --- |
+| 360x800 | PASS | Plans list kept one focal title, touch-sized CTA, readable real plan card, and no overflow. Browser harness observed a scaled CSS viewport. |
+| 390x844 | PASS | Dashboard, group plan surface, and itinerary dialog remained readable with reachable actions and no overflow. |
+| 430x932 | PASS | Mobile composition preserved the title/body/metadata descent and compact navigation. |
+| 768x1024 | PASS | Tablet plans surface re-composed without horizontal overflow. |
+| 834x1112 | PASS | Tablet spacing and card hierarchy remained stable. |
+| 1280x900 | PASS | Plans list and plan detail maintained one dominant title with quieter tabs, facts, and actions. |
+| 1440x900 | PASS | Plan hero title line grouping was corrected to keep the trip name together without clipping. |
+
+The browser harness reported scaled viewport dimensions (for example, requested 390px observed as 488px CSS width), so exact raw CSS screenshots at 360/390/430 were not available through that harness. The responsive CSS breakpoints and overflow checks were still exercised across all requested cases. No layout fixes were needed beyond the targeted plan-title measure/scale adjustment. Historical HMR/Firestore connection-abort messages were present in the long-lived browser console; no new typography runtime or layout errors were introduced by V3.
+
+### Typography V3 final verification
+
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed; only the existing Vite large-chunk warning remains.
+- `git diff --check` passed.
+- Typography V3 and responsive visual QA are complete for Module 05.
+- No Module 06 work has started.
+
 ## Current Phase
 
 Phase 2 — App shell and command center dashboard are implemented; Firebase’s final live authentication acceptance checks remain.
@@ -304,6 +353,29 @@ Final checks:
 - `git diff --check` passed.
 
 Bookings, Expenses, Polls, Activity, Notifications, and Settlement remain future modules. Exact next module: Module 06 — Booking Management.
+
+## Typography V2 — 2026-09-15
+
+Typography was audited across landing, auth, dashboard, app shell, groups/members, invites, plans, and itinerary against `BookKaroyar_UI_Design_Reference_v2.pdf` and the product intent.
+
+### Typography tokens
+
+- Display family: `"Arial Narrow", "Avenir Next Condensed", Inter, sans-serif`; used for hero headlines, page titles, contextual plan identity, and editorial section anchors. This preserves the product's expressive personality without forcing display treatment onto every UI string.
+- UI family: `Inter, ui-sans-serif, system-ui, sans-serif`; used for navigation, controls, forms, metadata, body copy, status labels, and supporting descriptions.
+- Weights: 400 regular body, 500 emphasized/supporting text, 600 controls and actionable UI, 700 section labels and compact headings, 800 display/page hierarchy, 900 brand/rare poster emphasis.
+- Scale: display-xl `clamp(4rem, 8.6vw, 8.9rem)`, display-lg `clamp(2.65rem, 5.5vw, 4.75rem)`, display-md `clamp(1.75rem, 3.4vw, 2.8rem)`, display-sm `clamp(1.35rem, 2.2vw, 1.85rem)`, body-lg `1.125rem`, body-md `1rem`, body-sm `.875rem`, caption `.75rem`, label `.6875rem`.
+- Line heights: display `.98`, tight `1.2`, body `1.55`.
+- Tracking: display and UI text use `0`; compact labels use `.1em` for scanability. The previous negative tracking values are no longer part of the shared system.
+
+### MUI mapping and usage
+
+- `h1`/`h2`: display-xl/display-lg, 800, display leading.
+- `h3`/`h4`: display-md/display-sm, 700, tight leading.
+- `body1`/`body2`: body-md/body-sm, 400, body leading.
+- `subtitle1`/`subtitle2`: body-lg/body-sm, 500/600.
+- `button`: body-sm, 600, UI tracking.
+- `caption`/`overline`: caption/label, 500/700, compact label tracking.
+- Typography V2 is implemented in `src/theme.js`, `src/index.css`, and `src/typography.css`. It changes type treatment only; palette, layout, product behavior, and module boundaries remain unchanged.
 
 ### Historical next-module checkpoint
 Module 04 — Shareable Invite Links.

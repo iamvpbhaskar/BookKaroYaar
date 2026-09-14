@@ -1,0 +1,128 @@
+:root {
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-control: 600;
+  --weight-section: 650;
+  --weight-title: 700;
+  --weight-display: 750;
+  --weight-brand: 800;
+}
+
+/* V3 uses one visual anchor per surface. Everything below it steps down in volume. */
+.type-display,
+.landing-page .hero-copy h1,
+.landing-page .poster-title {
+  font-family: var(--font-display) !important;
+  font-size: var(--type-display) !important;
+  font-weight: var(--weight-display) !important;
+  letter-spacing: var(--tracking-display) !important;
+  line-height: var(--leading-display) !important;
+}
+
+.plan-detail-page .plan-hero-copy h1 {
+  font-family: var(--font-display) !important;
+  font-size: var(--type-plan-title) !important;
+  font-weight: var(--weight-display) !important;
+  letter-spacing: var(--tracking-display) !important;
+  line-height: var(--leading-display) !important;
+  max-width: 20ch;
+}
+
+/* Product page titles are strong, but not poster-scale. */
+.dashboard-page h1,
+.groups-page h1,
+.group-detail-page h1,
+.plans-page h1,
+.future-page h1,
+.auth-layout .MuiTypography-h1 {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-page) !important;
+  font-weight: var(--weight-title) !important;
+  letter-spacing: var(--tracking-heading) !important;
+  line-height: var(--leading-heading) !important;
+}
+
+/* Sections create rhythm through spacing, not another display moment. */
+.dashboard-page h2,
+.groups-page h2,
+.group-detail-page h2,
+.plans-page h2,
+.plan-detail-page h2,
+.future-page h2,
+.auth-layout .MuiTypography-h2 {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-section) !important;
+  font-weight: var(--weight-section) !important;
+  letter-spacing: var(--tracking-heading) !important;
+  line-height: var(--leading-heading) !important;
+}
+
+.dashboard-page h3,
+.group-detail-page h3,
+.plans-page h3,
+.plan-detail-page h3,
+.plan-card-copy h2,
+.group-card h2,
+.members-section h2,
+.section-heading h2 {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-card) !important;
+  font-weight: var(--weight-section) !important;
+  letter-spacing: var(--tracking-heading) !important;
+  line-height: var(--leading-tight) !important;
+}
+
+.dashboard-page .MuiTypography-body1,
+.groups-page .MuiTypography-body1,
+.group-detail-page .MuiTypography-body1,
+.plans-page .MuiTypography-body1,
+.plan-detail-page .MuiTypography-body1,
+.landing-page .hero-description,
+.landing-page .landing-chaos-section > div > .MuiTypography-root:last-child,
+.landing-page .landing-closing > div > .MuiTypography-root:not(.section-label):not(h2) {
+  font-family: var(--font-ui);
+  font-size: var(--type-body-md);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-ui);
+  line-height: var(--leading-body);
+}
+
+.dashboard-eyebrow,
+.hero-kicker,
+.section-label,
+.group-card-index,
+.itinerary-type,
+.plan-card-art p,
+.shell-nav-item .MuiListItemText-primary,
+.MuiTypography-overline {
+  font-family: var(--font-ui) !important;
+  font-size: var(--type-label) !important;
+  font-weight: var(--weight-control) !important;
+  letter-spacing: var(--tracking-label) !important;
+  line-height: var(--leading-tight) !important;
+}
+
+.shell-brand,
+.landing-brand,
+.auth-layout .auth-brand-mark {
+  font-family: var(--font-ui) !important;
+  font-weight: var(--weight-brand) !important;
+  letter-spacing: var(--tracking-heading) !important;
+}
+
+.MuiButton-root { font-weight: var(--weight-control); letter-spacing: var(--tracking-ui); }
+.MuiInputBase-input, .MuiInputLabel-root, .MuiFormLabel-root { font-family: var(--font-ui); }
+.MuiTabs-root .MuiTab-root { font-size: var(--type-body-sm); font-weight: var(--weight-control); letter-spacing: var(--tracking-ui); }
+.MuiChip-label { font-size: var(--type-caption); font-weight: var(--weight-control); letter-spacing: var(--tracking-ui); }
+
+@media (max-width: 620px) {
+  .type-display,
+  .landing-page .hero-copy h1,
+  .landing-page .poster-title,
+  .plan-detail-page .plan-hero-copy h1 { line-height: 1; }
+  .dashboard-page h1,
+  .groups-page h1,
+  .group-detail-page h1,
+  .plans-page h1,
+  .future-page h1 { line-height: 1.05 !important; }
+}
