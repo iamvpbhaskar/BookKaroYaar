@@ -167,5 +167,23 @@ Verified end-to-end in real browser session authenticated as `Ved Prakash Bhaska
 - A second authenticated account is not yet configured in this environment to test cross-user member addition and non-member group access denial in the live browser (already protected and enforced by Firestore Security Rules).
 - Shareable invite links remain the scope of Module 04.
 
+## Groups → Members UX Refinement — 2026-09-14
+
+- **Removed Internal Identifiers**: Completely eliminated the temporary "Bring in a teammate" form that required raw Firebase user IDs (UIDs) and display names.
+- **Removed Raw UID Exposure in Roster**: Member rows now display `displayNameSnapshot` and the human-readable role label (`Owner`, `Admin`, `Member`) instead of leaking raw database UIDs (`member.uid`) to the user interface.
+- **Added "Invite people" CTA**:
+  - Replaced the direct UID input area with a clean editorial CTA card (`.invite-cta-card`) in the Members tab.
+  - Added an "Invite people" button in the Members section header for owners and admins.
+  - Added an `InviteDialog` clearly communicating that shareable invite links, token expiration, and one-tap onboarding are arriving in Module 04.
+- **Preserved Real Architecture**:
+  - Real membership documents in `groups/{groupId}/members/{uid}` are preserved.
+  - `OWNER`, `ADMIN`, `MEMBER` roles and permission rules remain strictly enforced.
+  - No fake or display-only member records were introduced.
+- **Verification**:
+  - `npm.cmd run lint` passed with 0 errors.
+  - `npm.cmd run build` passed with 0 errors.
+  - `git diff --check` passed with 0 formatting issues.
+  - Browser subagent verified on live group "Goa Roadtrip": UID inputs are completely gone, member row displays clean role labels, CTA button opens the Module 04 invite dialog, and dialog closes cleanly.
+
 ### Exact Next Unfinished Module
 Module 04 — Shareable Invite Links.
