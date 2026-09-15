@@ -9,6 +9,7 @@ service cloud.firestore {
     function owner(groupId) { return member(groupId) && role(groupId) == 'owner'; }
     function planMember(groupId, planId) { return member(groupId) && exists(/databases/$(database)/documents/groups/$(groupId)/plans/$(planId)/members/$(request.auth.uid)); }
     function planOrganizer(groupId, planId) { return planMember(groupId, planId) && get(/databases/$(database)/documents/groups/$(groupId)/plans/$(planId)/members/$(request.auth.uid)).data.role == 'organizer'; }
+    function planMemberUid(groupId, planId, uid) { return exists(/databases/$(database)/documents/groups/$(groupId)/plans/$(planId)/members/$(uid)); }
     function validInvite(inviteId, groupId) {
       return exists(/databases/$(database)/documents/inviteLinks/$(inviteId))
         && get(/databases/$(database)/documents/inviteLinks/$(inviteId)).data.groupId == groupId
@@ -34,6 +35,34 @@ service cloud.firestore {
         );
         allow update: if owner(groupId) || (admin(groupId) && resource.data.role == 'member' && request.resource.data.role in ['member', 'admin']);
         allow delete: if owner(groupId) || (admin(groupId) && resource.data.role == 'member') || (self(uid) && resource.data.role != 'owner');
+      }
+      match /bookings/{bookingId} {
+        allow read: if member(groupId);
+        allow create: if member(groupId)
+          && request.resource.data.planId != null
+          && exists(/databases/$(database)/documents/groups/$(groupId)/plans/$(request.resource.data.planId))
+          && planMember(groupId, request.resource.data.planId)
+          && request.resource.data.bookedBy == request.auth.uid
+          && request.resource.data.type in ['movie', 'hotel', 'flight', 'restaurant', 'other']
+          && request.resource.data.totalAmount >= 0
+          && request.resource.data.currency is string;
+        allow update: if (admin(groupId) || planOrganizer(groupId, resource.data.planId) || resource.data.bookedBy == request.auth.uid)
+          && request.resource.data.planId == resource.data.planId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.bookedBy == resource.data.bookedBy
+          && request.resource.data.type in ['movie', 'hotel', 'flight', 'restaurant', 'other']
+          && request.resource.data.totalAmount >= 0;
+        allow delete: if admin(groupId) || planOrganizer(groupId, resource.data.planId) || resource.data.bookedBy == request.auth.uid;
+        match /participants/{uid} {
+          allow read: if member(groupId);
+          allow create: if member(groupId)
+            && getAfter(/databases/$(database)/documents/groups/$(groupId)/bookings/$(bookingId)).data.planId != null
+            && planMemberUid(groupId, getAfter(/databases/$(database)/documents/groups/$(groupId)/bookings/$(bookingId)).data.planId, uid)
+            && request.resource.data.uid == uid
+            && request.resource.data.shareMode in ['full', 'equal'];
+          allow update: if member(groupId) && request.resource.data.uid == uid && request.resource.data.shareMode in ['full', 'equal'];
+          allow delete: if admin(groupId) || planOrganizer(groupId, get(/databases/$(database)/documents/groups/$(groupId)/bookings/$(bookingId)).data.planId) || get(/databases/$(database)/documents/groups/$(groupId)/bookings/$(bookingId)).data.bookedBy == request.auth.uid;
+        }
       }
       match /plans/{planId} {
         allow read: if member(groupId);
