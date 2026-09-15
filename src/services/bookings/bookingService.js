@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, getDocs, onSnapshot, query, serverTimestamp, where, writeBatch } from 'firebase/firestore'
+import { collection, doc, getDocs, onSnapshot, query, serverTimestamp, where, writeBatch } from 'firebase/firestore'
 import { db } from '../firebase/config'
 import { BOOKING_SHARE_MODES } from '../../features/bookings/bookingConstants'
 
@@ -32,4 +32,10 @@ export async function saveBooking(groupId, planId, values, user, participants = 
   return bookingRef.id
 }
 
-export async function deleteBooking(groupId, bookingId) { return deleteDoc(bookingDocument(groupId, bookingId)) }
+export async function deleteBooking(groupId, bookingId) {
+  const batch = writeBatch(db)
+  const participants = await getDocs(participantsCollection(groupId, bookingId))
+  participants.docs.forEach((participant) => batch.delete(participant.ref))
+  batch.delete(bookingDocument(groupId, bookingId))
+  return batch.commit()
+}
